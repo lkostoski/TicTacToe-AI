@@ -127,6 +127,73 @@ def finds_winning_and_losing_moves_ai(board, player):
 
     return random.choice(list_available)
 
+def is_board_full(board):
+    for x in range(3):
+        for y in range(3):
+            if board[x][y] == '_':
+                return False  # Found empty spot, not full
+    return True
+
+# Minimax Alg
+# +10 for win -10 for loss and 0 for draw
+
+def minimax_score(board, player):
+    if get_winner(board) == 'X':
+        return +10
+    elif get_winner(board) == 'O':
+        return -10
+    elif is_board_full(board):
+        return 0
+
+    list_available = []
+
+    for x in range(3):
+        for y in range(3):
+            if board[x][y] == '_':
+                list_available.append((x, y))
+    
+    scores = []
+
+    if player == 'X':
+        opponent = 'O'
+    else:
+        opponent = 'X'
+
+    for pos in list_available:
+        new_board = [row[:] for row in board]
+        new_board[pos[0]][pos[1]] = player
+        score = minimax_score(new_board, opponent)
+        scores.append(score)
+    
+    if player == 'X':
+        return max(scores)
+    else:
+        return min(scores)
+
+def minimax_ai(board, player):
+    best_pos = None
+    best_score = float('-inf') if player == 'X' else float('inf')
+
+    list_available = []
+
+    for x in range(3):
+        for y in range(3):
+            if board[x][y] == '_':
+                list_available.append((x,y))
+    
+    for pos in list_available:
+        new_board = [row[:] for row in board]
+        new_board[pos[0]][pos[1]] = player
+        score = minimax_score(new_board, 'O' if player == 'X' else 'X')
+        if player == 'X' and score > best_score:
+            best_score = score
+            best_pos = (pos[0]+1, pos[1]+1)  # Convert back to 1-based for consistency
+        elif player == 'O' and score < best_score:
+            best_score = score
+            best_pos = (pos[0]+1, pos[1]+1)
+    
+    return best_pos
+
 def play_vs_ai():
     turn = random.choice([True, False])
     board = init_board()
@@ -164,6 +231,8 @@ def select_ai(ai_name, board, player):
         return finds_winning_and_losing_moves_ai(board, player)
     elif ai_name == 'human':
         return make_move(board, player)
+    elif ai_name == 'minimax':
+        return minimax_ai(board, player)
     else:
         print(f"Unknown AI: {ai_name}")
         return random_ai2(board, player)
@@ -178,7 +247,7 @@ def play_with_ais(x_ai_name, y_ai_name):
 
     while is_winner == '_' and count < 9:
         current_player = player_turn(turn)
-        if current_player == 'O':
+        if current_player == 'X':
             board = make_move(board, select_ai(x_ai_name, board, current_player), current_player)
         else:
             board = make_move(board, select_ai(y_ai_name, board, current_player), current_player)
@@ -191,7 +260,7 @@ def play_with_ais(x_ai_name, y_ai_name):
     
     if not is_winner == '_':
         # print(f"The winner is {is_winner}")
-        if is_winner == 'O': return 1
+        if is_winner == 'X': return 1
         else: return 2
     else:
         # print ("The match has ended in a draw!")
@@ -204,7 +273,7 @@ def repeated_play(x_ai_name, y_ai_name):
     draws = 0
     x = 0
     y = 0
-    while count < 100000:
+    while count < 10:
         winner = play_with_ais(x_ai_name, y_ai_name)
         if winner == 0: draws += 1
         elif winner == 1: x += 1
@@ -213,6 +282,7 @@ def repeated_play(x_ai_name, y_ai_name):
     
     end_time = time.time()
     duration = end_time - start_time
+    # 100000 = 3.50s Unoptimized
 
     print (f"{x_ai_name} won {x} times.")
     print (f"{y_ai_name} won {y} times.")
