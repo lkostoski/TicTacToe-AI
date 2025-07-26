@@ -28,7 +28,7 @@ def is_valid_move(board, position):
     
     return True
 
-def get_move(board):
+def get_move(board, player):
     x = int(input("Enter row: "))
     y = int(input("Enter column: "))
 
@@ -126,7 +126,7 @@ def finds_winning_and_losing_moves_ai(board, player):
     return random.choice(list_available)
 
 def play():
-    turn = True
+    turn = random.choice([True, False])
     board = init_board()
     print_board(board)
     print()
@@ -135,7 +135,10 @@ def play():
 
     while is_winner == '_':
         current_player = player_turn(turn)
-        board = make_move(board, finds_winning_and_losing_moves_ai(board, current_player), current_player)
+        if current_player == 'O':
+            board = make_move(board, finds_winning_and_losing_moves_ai(board, current_player), current_player)
+        else:
+            board = make_move(board, get_move(board, current_player), current_player)
         count += 1
         turn = not turn
         print_board(board)
