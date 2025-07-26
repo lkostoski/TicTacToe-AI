@@ -83,6 +83,48 @@ def random_ai2(board):
                 list_available.append((x+1,y+1))
     return random.choice(list_available)
 
+def will_move_win(board, position, player):
+    x = position[0] - 1
+    y = position[1] - 1
+    temp_board = [row[:] for row in board]
+    temp_board[x][y] = player
+    if get_winner(temp_board) == '_':
+        return False
+    else:
+        return True
+
+
+def finds_winning_moves_ai(board, player):
+    list_available = []
+    for x in range(3):
+        for y in range(3):
+            if board[x][y] == '_':
+                list_available.append((x+1,y+1))
+                if will_move_win(board, (x+1, y+1), player):
+                    return (x+1, y+1)
+    return random.choice(list_available)
+
+def finds_winning_and_losing_moves_ai(board, player):
+    if player == 'X':
+        opponent = 'O'
+    else:
+        opponent = 'X'
+    list_available = []
+    for x in range(3):
+        for y in range(3):
+            if board[x][y] == '_':
+                list_available.append((x+1,y+1))
+                if will_move_win(board, (x+1, y+1), player):
+                    return (x+1, y+1)
+    
+    for x in range(3):
+        for y in range(3):
+            if board[x][y] == '_':
+                if will_move_win(board, (x+1, y+1), opponent):
+                    return (x+1, y+1)
+
+    return random.choice(list_available)
+
 def play():
     turn = True
     board = init_board()
@@ -92,7 +134,8 @@ def play():
     is_winner = '_'
 
     while is_winner == '_':
-        board = make_move(board, random_ai2(board), player_turn(turn))
+        current_player = player_turn(turn)
+        board = make_move(board, finds_winning_and_losing_moves_ai(board, current_player), current_player)
         count += 1
         turn = not turn
         print_board(board)
