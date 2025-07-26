@@ -1,5 +1,6 @@
 import sys
 import random
+import time
 
 def init_board():
     board = [ ['_', '_', '_'],
@@ -170,8 +171,8 @@ def select_ai(ai_name, board, player):
 def play_with_ais(x_ai_name, y_ai_name):
     turn = random.choice([True, False])
     board = init_board()
-    print_board(board)
-    print()
+    # print_board(board)
+    # print()
     count = 0
     is_winner = '_'
 
@@ -183,30 +184,36 @@ def play_with_ais(x_ai_name, y_ai_name):
             board = make_move(board, select_ai(y_ai_name, board, current_player), current_player)
         count += 1
         turn = not turn
-        print_board(board)
-        print()
+        # print_board(board)
+        # print()
         if count >= 5:
             is_winner = get_winner(board)
     
     if not is_winner == '_':
-        print(f"The winner is {is_winner}")
+        # print(f"The winner is {is_winner}")
         if is_winner == 'O': return 1
         else: return 2
     else:
-        print ("The match has ended in a draw!")
+        # print ("The match has ended in a draw!")
         return 0
 
 def repeated_play(x_ai_name, y_ai_name):
+    start_time = time.time()
+
     count = 0
     draws = 0
     x = 0
     y = 0
-    while count < 10000:
+    while count < 100000:
         winner = play_with_ais(x_ai_name, y_ai_name)
         if winner == 0: draws += 1
         elif winner == 1: x += 1
         elif winner == 2: y += 1
         count += 1
+    
+    end_time = time.time()
+    duration = end_time - start_time
+
     print (f"{x_ai_name} won {x} times.")
     print (f"{y_ai_name} won {y} times.")
     print (f"{draws} draws.")
@@ -214,6 +221,9 @@ def repeated_play(x_ai_name, y_ai_name):
     print (f"{x_ai_name} won {(x/count)*100} %")
     print (f"{y_ai_name} won {(y/count)*100} %")
     print (f"They drew {(draws/count)*100} %")
+    print()
+    print(f"Execution time: {duration:.2f} seconds")
+    print(f"Games per second: {count/duration:.1f}")
 
 if __name__ == "__main__":
     if len(sys.argv) == 3:
