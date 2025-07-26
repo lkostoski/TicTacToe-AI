@@ -1,3 +1,7 @@
+import sys
+import random
+import time
+
 def init_board():
     board = [ ['_', '_', '_'],
               ['_', '_', '_'],
@@ -26,7 +30,7 @@ def is_valid_move(board, position):
     
     return True
 
-def get_move(board):
+def get_move(board, player):
     x = int(input("Enter row: "))
     y = int(input("Enter column: "))
 
@@ -63,28 +67,239 @@ def get_winner(board):
     
     return '_'
 
-def play():
-    turn = True
+# AI
+
+def random_ai(board, player):
+    x = random.randrange(3) + 1
+    y = random.randrange(3) + 1
+    if not is_valid_move(board, (x,y)):
+        return random_ai(board)
+    
+    return (x,y)
+
+def random_ai2(board, player):
+    list_available = []
+    for x in range(3):
+        for y in range(3):
+            if board[x][y] == '_':
+                list_available.append((x+1,y+1))
+    return random.choice(list_available)
+
+def will_move_win(board, position, player):
+    x = position[0] - 1
+    y = position[1] - 1
+    temp_board = [row[:] for row in board]
+    temp_board[x][y] = player
+    if get_winner(temp_board) == '_':
+        return False
+    else:
+        return True
+
+
+def finds_winning_moves_ai(board, player):
+    list_available = []
+    for x in range(3):
+        for y in range(3):
+            if board[x][y] == '_':
+                list_available.append((x+1,y+1))
+                if will_move_win(board, (x+1, y+1), player):
+                    return (x+1, y+1)
+    return random.choice(list_available)
+
+def finds_winning_and_losing_moves_ai(board, player):
+    if player == 'X':
+        opponent = 'O'
+    else:
+        opponent = 'X'
+    list_available = []
+    for x in range(3):
+        for y in range(3):
+            if board[x][y] == '_':
+                list_available.append((x+1,y+1))
+                if will_move_win(board, (x+1, y+1), player):
+                    return (x+1, y+1)
+    
+    for x in range(3):
+        for y in range(3):
+            if board[x][y] == '_':
+                if will_move_win(board, (x+1, y+1), opponent):
+                    return (x+1, y+1)
+
+    return random.choice(list_available)
+
+def is_board_full(board):
+    for x in range(3):
+        for y in range(3):
+            if board[x][y] == '_':
+                return False  # Found empty spot, not full
+    return True
+
+# Minimax Alg
+# +10 for win -10 for loss and 0 for draw
+
+def minimax_score(board, player):
+    if get_winner(board) == 'X':
+        return +10
+    elif get_winner(board) == 'O':
+        return -10
+    elif is_board_full(board):
+        return 0
+
+    list_available = []
+
+    for x in range(3):
+        for y in range(3):
+            if board[x][y] == '_':
+                list_available.append((x, y))
+    
+    scores = []
+
+    if player == 'X':
+        opponent = 'O'
+    else:
+        opponent = 'X'
+
+    for pos in list_available:
+        new_board = [row[:] for row in board]
+        new_board[pos[0]][pos[1]] = player
+        score = minimax_score(new_board, opponent)
+        scores.append(score)
+    
+    if player == 'X':
+        return max(scores)
+    else:
+        return min(scores)
+
+def minimax_ai(board, player):
+    best_pos = None
+    best_score = float('-inf') if player == 'X' else float('inf')
+
+    list_available = []
+
+    for x in range(3):
+        for y in range(3):
+            if board[x][y] == '_':
+                list_available.append((x,y))
+    
+    for pos in list_available:
+        new_board = [row[:] for row in board]
+        new_board[pos[0]][pos[1]] = player
+        score = minimax_score(new_board, 'O' if player == 'X' else 'X')
+        if player == 'X' and score > best_score:
+            best_score = score
+            best_pos = (pos[0]+1, pos[1]+1)  # Convert back to 1-based for consistency
+        elif player == 'O' and score < best_score:
+            best_score = score
+            best_pos = (pos[0]+1, pos[1]+1)
+    
+    return best_pos
+
+def play_vs_ai():
+    turn = random.choice([True, False])
     board = init_board()
     print_board(board)
+    print()
     count = 0
     is_winner = '_'
 
-    while is_winner == '_':
-        board = make_move(board, get_move(board), player_turn(turn))
+    while is_winner == '_' and count < 9:
+        current_player = player_turn(turn)
+        if current_player == 'O':
+            board = make_move(board, finds_winning_and_losing_moves_ai(board, current_player), current_player)
+        else:
+            board = make_move(board, get_move(board, current_player), current_player)
         count += 1
         turn = not turn
         print_board(board)
-
+        print()
         if count >= 5:
             is_winner = get_winner(board)
-        
-        if count == 9:
-            break
     
     if not is_winner == '_':
         print(f"The winner is {is_winner}")
     else:
         print ("The match has ended in a draw!")
 
-play()
+def select_ai(ai_name, board, player):
+    if ai_name == 'random_ai':
+        return random_ai(board, player)
+    elif ai_name == 'random_ai2':
+        return random_ai2(board, player)
+    elif ai_name == 'finds_winning_moves_ai':
+        return finds_winning_moves_ai(board, player)
+    elif ai_name == 'finds_winning_and_losing_moves_ai':
+        return finds_winning_and_losing_moves_ai(board, player)
+    elif ai_name == 'human':
+        return make_move(board, player)
+    elif ai_name == 'minimax':
+        return minimax_ai(board, player)
+    else:
+        print(f"Unknown AI: {ai_name}")
+        return random_ai2(board, player)
+    
+def play_with_ais(x_ai_name, y_ai_name):
+    turn = random.choice([True, False])
+    board = init_board()
+    # print_board(board)
+    # print()
+    count = 0
+    is_winner = '_'
+
+    while is_winner == '_' and count < 9:
+        current_player = player_turn(turn)
+        if current_player == 'X':
+            board = make_move(board, select_ai(x_ai_name, board, current_player), current_player)
+        else:
+            board = make_move(board, select_ai(y_ai_name, board, current_player), current_player)
+        count += 1
+        turn = not turn
+        # print_board(board)
+        # print()
+        if count >= 5:
+            is_winner = get_winner(board)
+    
+    if not is_winner == '_':
+        # print(f"The winner is {is_winner}")
+        if is_winner == 'X': return 1
+        else: return 2
+    else:
+        # print ("The match has ended in a draw!")
+        return 0
+
+def repeated_play(x_ai_name, y_ai_name):
+    start_time = time.time()
+
+    count = 0
+    draws = 0
+    x = 0
+    y = 0
+    while count < 10:
+        winner = play_with_ais(x_ai_name, y_ai_name)
+        if winner == 0: draws += 1
+        elif winner == 1: x += 1
+        elif winner == 2: y += 1
+        count += 1
+    
+    end_time = time.time()
+    duration = end_time - start_time
+    # 100000 = 3.50s Unoptimized
+
+    print (f"{x_ai_name} won {x} times.")
+    print (f"{y_ai_name} won {y} times.")
+    print (f"{draws} draws.")
+    print()
+    print (f"{x_ai_name} won {(x/count)*100} %")
+    print (f"{y_ai_name} won {(y/count)*100} %")
+    print (f"They drew {(draws/count)*100} %")
+    print()
+    print(f"Execution time: {duration:.2f} seconds")
+    print(f"Games per second: {count/duration:.1f}")
+
+if __name__ == "__main__":
+    if len(sys.argv) == 3:
+        x_ai = sys.argv[1]
+        o_ai = sys.argv[2]
+        repeated_play(x_ai, o_ai)
+    else:
+        print("Starting default game: random_ai2 vs finds_winning_and_losing_moves_ai")
+        play_with_ais('random_ai2', 'finds_winning_and_losing_moves_ai')
