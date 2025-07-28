@@ -55,8 +55,8 @@ def select_ai(ai_name, board, player):
 def play_with_ais(x_ai_name, y_ai_name):
     turn = random.choice([True, False])
     board = init_board()
-    print_board(board)
-    print()
+    # print_board(board)
+    # print()
     count = 0
     is_winner = '_'
 
@@ -68,17 +68,17 @@ def play_with_ais(x_ai_name, y_ai_name):
             board = make_move(board, select_ai(y_ai_name, board, current_player), current_player)
         count += 1
         turn = not turn
-        print_board(board)
-        print()
+        # print_board(board)
+        # print()
         if count >= 5:
             is_winner = get_winner(board)
     
     if not is_winner == '_':
-        print(f"The winner is {is_winner}")
+        # print(f"The winner is {is_winner}")
         if is_winner == 'X': return 1
         else: return 2
     else:
-        print ("The match has ended in a draw!")
+        # print ("The match has ended in a draw!")
         return 0
 
 def repeated_play(x_ai_name, y_ai_name):
@@ -88,7 +88,7 @@ def repeated_play(x_ai_name, y_ai_name):
     draws = 0
     x = 0
     y = 0
-    while count < 10:
+    while count < 100000:
         winner = play_with_ais(x_ai_name, y_ai_name)
         if winner == 0: draws += 1
         elif winner == 1: x += 1
