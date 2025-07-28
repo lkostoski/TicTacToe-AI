@@ -202,8 +202,8 @@ This project demonstrates:
 
 ## 📞 Contact
 
-- **Author**: [Ljupcho Kostoski]
-- **Email**: [ljupcekostoski1@gmail.com]
+- **Author**: Ljupcho Kostoski
+- **Email**: ljupcekostoski1@gmail.com
 - **GitHub**: [@lkostoski](https://github.com/lkostoski)
 - **Project Link**: [https://github.com/lkostoski/TicTacToe-AI](https://github.com/lkostoski/TicTacToe-AI)
 
